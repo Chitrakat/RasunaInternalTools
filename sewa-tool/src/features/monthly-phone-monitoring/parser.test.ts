@@ -99,23 +99,23 @@ describe("monitoring parser", () => {
     });
   });
 
-  it("selects the configured third date column by default and sorts chronologically", () => {
+  it("selects the configured third date column by default and preserves the input order", () => {
     const parsed = parseMonitoringInput(sampleInput);
     const selected = selectMonitoringDates(parsed.records, 2);
 
     expect(selected.map((date) => date.toISOString().slice(0, 10))).toEqual([
-      "2025-12-17",
-      "2025-12-17",
-      "2025-12-17",
-      "2025-12-17",
-      "2025-12-17",
-      "2025-12-29",
-      "2026-02-25",
-      "2026-04-01",
-      "2026-04-21",
-      "2026-06-02",
-      "2026-06-24",
       "2026-08-10",
+      "2026-06-24",
+      "2026-06-02",
+      "2026-04-21",
+      "2026-04-01",
+      "2026-02-25",
+      "2025-12-29",
+      "2025-12-17",
+      "2025-12-17",
+      "2025-12-17",
+      "2025-12-17",
+      "2025-12-17",
     ]);
 
     expect(sortDatesChronologically(selected)).toHaveLength(selected.length);
@@ -125,7 +125,7 @@ describe("monitoring parser", () => {
     const parsed = parseMonitoringInput(sampleInput);
     const selected = selectMonitoringDates(parsed.records);
 
-    expect(selected[0]?.toISOString().slice(0, 10)).toBe("2025-07-28");
+    expect(selected[0]?.toISOString().slice(0, 10)).toBe("2026-07-29");
   });
 
   it("detects duplicates deterministically", () => {
