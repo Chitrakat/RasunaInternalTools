@@ -11,7 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">SEWA</p>
+          <p className="eyebrow">Rasuna</p>
           <h1>INTERNAL TOOLS</h1>
         </div>
       </header>

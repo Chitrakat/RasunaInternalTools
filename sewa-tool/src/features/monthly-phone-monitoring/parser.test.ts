@@ -170,8 +170,8 @@ describe("monitoring parser", () => {
   });
 
   it("sanitizes the generated output filename", () => {
-    expect(sanitizeFilename("SEWA / Monthly Phone Monitoring / Christopher Tran 2025")).toBe(
-      "SEWA_Monthly_Phone_Monitoring_Christopher_Tran_2025",
+    expect(sanitizeFilename("Rasuna / Monthly Phone Monitoring / Christopher Tran 2025")).toBe(
+      "Rasuna_Monthly_Phone_Monitoring_Christopher_Tran_2025",
     );
   });
 
@@ -182,8 +182,8 @@ describe("monitoring parser", () => {
       year: "2026",
       prefix: "Quarterly_Conference",
     })).toEqual({
-      docx: "SEWA_Quarterly_Conference_HELLO_F_N_2026.docx",
-      pdf: "SEWA_Quarterly_Conference_HELLO_F_N_2026.pdf",
+      docx: "Rasuna_Quarterly_Conference_HELLO_F_N_2026.docx",
+      pdf: "Rasuna_Quarterly_Conference_HELLO_F_N_2026.pdf",
     });
   });
 });

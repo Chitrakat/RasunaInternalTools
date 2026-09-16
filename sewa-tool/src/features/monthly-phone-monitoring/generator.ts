@@ -39,7 +39,7 @@ export const sanitizeFilename = (input: string): string => {
     .trim()
     .replace(/\s+/g, "_");
 
-  return sanitized || "sewa_document";
+  return sanitized || "rasuna_document";
 };
 
 export const buildFilename = (data: { participant: string; hca: string; year: string; prefix?: string }): { docx: string; pdf: string } => {
@@ -48,8 +48,8 @@ export const buildFilename = (data: { participant: string; hca: string; year: st
   const yearPart = data.year?.trim() || "unknown";
 
   const prefix = data.prefix?.trim() || "Monthly_Phone_Monitoring";
-  const docxName = sanitizeFilename(`SEWA_${prefix}_${participantPart}_${hcaPart}_${yearPart}.docx`);
-  const pdfName = sanitizeFilename(`SEWA_${prefix}_${participantPart}_${hcaPart}_${yearPart}.pdf`);
+  const docxName = sanitizeFilename(`Rasuna_${prefix}_${participantPart}_${hcaPart}_${yearPart}.docx`);
+  const pdfName = sanitizeFilename(`Rasuna_${prefix}_${participantPart}_${hcaPart}_${yearPart}.pdf`);
 
   return { docx: docxName, pdf: pdfName };
 };
@@ -144,7 +144,7 @@ const insertRowsIntoTable = (xmlDocument: Document, entries: PhoneMonitoringEntr
       new Date(entry.date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }),
       entry.typeOfContact,
       entry.purpose.replace(/\n/g, " "),
-      entry.objectiveMet ? "Yes" : "No",
+      entry.objectiveMet ? "Y" : "N",
     ];
 
     cells.forEach((cell, index) => {
@@ -237,7 +237,7 @@ export const generatePdfFromEntries = ({
     pdf.text(new Date(entry.date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }), 52, y);
     pdf.text(entry.typeOfContact, 146, y);
     pdf.text(lines[0] ?? "", 220, y);
-    pdf.text(entry.objectiveMet ? "Yes" : "No", 470, y);
+    pdf.text(entry.objectiveMet ? "Y" : "N", 470, y);
 
     y += Math.max(16, lines.length * 12);
 
