@@ -145,7 +145,7 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
               <option value={0}>First date column</option><option value={1}>Second date column</option><option value={2}>Third date column</option>
             </select>
           </div>
-          {previewDates.length > 0 ? <div className="preview-stack"><h4>PHONE CALL LOG DATES</h4><ul className="date-list">{previewDates.map((date) => <li key={`${date.toISOString()}-${date.getTime()}`}>{date.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" })}</li>)}</ul></div> : null}
+          {previewDates.length > 0 ? <div className="preview-stack"><h4>PHONE CALL LOG DATES</h4><ul className="date-list">{previewDates.map((date) => <li key={`${date.toISOString()}-${date.getTime()}`}>{date.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric", timeZone: "UTC" })}</li>)}</ul></div> : null}
           {!validation.success ? <div className="status-box error-box" role="alert"><strong>Missing required fields:</strong><ul>{validation.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
         </section>
 

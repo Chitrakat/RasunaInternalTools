@@ -135,7 +135,7 @@ export const detectYearsFromDates = (dates: Date[]): string[] => {
 
   dates.forEach((date) => {
     if (date && Number.isFinite(date.getTime())) {
-      years.add(date.getFullYear());
+      years.add(date.getUTCFullYear());
     }
   });
 
@@ -146,7 +146,7 @@ export const groupDatesByYear = (dates: Date[]): Record<number, Date[]> => {
   const groups: Record<number, Date[]> = {};
 
   dates.forEach((date) => {
-    const year = date.getFullYear();
+    const year = date.getUTCFullYear();
     if (!groups[year]) {
       groups[year] = [];
     }

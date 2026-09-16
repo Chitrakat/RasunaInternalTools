@@ -145,7 +145,7 @@ const insertRowsIntoTable = (xmlDocument: Document, entries: PhoneMonitoringEntr
     const clonedRow = templateRow.cloneNode(true) as Element;
     const cells = Array.from(clonedRow.getElementsByTagNameNS(WORD_XML_NS, "tc"));
     const values = [
-      new Date(entry.date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }),
+      new Date(entry.date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric", timeZone: "UTC" }),
       entry.typeOfContact,
       entry.purpose.replace(/\n/g, " "),
       entry.objectiveMet ? "Y" : "N",
@@ -238,7 +238,7 @@ export const generatePdfFromEntries = ({
   entries.forEach((entry) => {
     const lines = pdf.splitTextToSize(entry.purpose, 190);
 
-    pdf.text(new Date(entry.date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" }), 52, y);
+    pdf.text(new Date(entry.date).toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric", timeZone: "UTC" }), 52, y);
     pdf.text(entry.typeOfContact, 146, y);
     pdf.text(lines[0] ?? "", 220, y);
     pdf.text(entry.objectiveMet ? "Y" : "N", 470, y);
