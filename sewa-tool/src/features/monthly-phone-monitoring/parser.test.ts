@@ -10,6 +10,7 @@ import {
 } from "./parser";
 import {
   buildPhoneMonitoringEntries,
+  buildFilename,
   sanitizeFilename,
   validateDocumentData,
 } from "./generator";
@@ -172,5 +173,17 @@ describe("monitoring parser", () => {
     expect(sanitizeFilename("SEWA / Monthly Phone Monitoring / Christopher Tran 2025")).toBe(
       "SEWA_Monthly_Phone_Monitoring_Christopher_Tran_2025",
     );
+  });
+
+  it("uses the Quarterly Conference filename prefix", () => {
+    expect(buildFilename({
+      participant: "HELLO",
+      hca: "F N",
+      year: "2026",
+      prefix: "Quarterly_Conference",
+    })).toEqual({
+      docx: "SEWA_Quarterly_Conference_HELLO_F_N_2026.docx",
+      pdf: "SEWA_Quarterly_Conference_HELLO_F_N_2026.pdf",
+    });
   });
 });

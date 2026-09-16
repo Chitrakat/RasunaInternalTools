@@ -208,7 +208,6 @@ export const generatePdfFromEntries = ({
   title?: string;
 }): Blob => {
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
-  const pageWidth = pdf.internal.pageSize.getWidth();
   let y = 56;
 
   pdf.setFontSize(18);
@@ -248,5 +247,5 @@ export const generatePdfFromEntries = ({
     }
   });
 
-  return pdf.output("blob" as "blob");
+  return pdf.output("blob");
 };

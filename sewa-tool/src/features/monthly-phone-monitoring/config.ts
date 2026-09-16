@@ -1,3 +1,5 @@
+import type { DocumentTemplateConfig } from "./types";
+
 export const PHONE_CALL_LOG_TYPE = "Phone Call";
 export const DEFAULT_OBJECTIVE_MET = true;
 
@@ -12,3 +14,17 @@ export const PURPOSE_TEMPLATES = {
 
 export const DEFAULT_DATE_COLUMN_INDEX = 2;
 export const DEFAULT_DOCUMENT_YEAR = "2025";
+
+export const monthlyDocumentConfig: DocumentTemplateConfig = {
+  title: "Monthly Phone Monitoring",
+  templateUrl: "/template/monthly-phone-monitoring-TEMPLATE.docx",
+  filenamePrefix: "Monthly_Phone_Monitoring",
+  yearMarker: "[YEAR]",
+};
+
+export const quarterlyDocumentConfig: DocumentTemplateConfig = {
+  title: "Quarterly Conference",
+  templateUrl: "/template/quarterly-conference-TEMPLATE.docx",
+  filenamePrefix: "Quarterly_Conference",
+  yearMarker: "[[YEAR]]",
+};

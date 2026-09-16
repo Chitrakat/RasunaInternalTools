@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { DEFAULT_DATE_COLUMN_INDEX, PURPOSE_TEMPLATES } from "@/features/monthly-phone-monitoring/config";
+import { DEFAULT_DATE_COLUMN_INDEX } from "@/features/monthly-phone-monitoring/config";
 import {
   buildFilename,
   buildPhoneMonitoringEntries,
@@ -39,7 +39,9 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
     const nextYear = detectedYears[0] ?? documentData.year;
     if (!nextYear) return;
 
-    setDocumentData((previous) => previous.year === nextYear ? previous : { ...previous, year: nextYear });
+    startTransition(() => {
+      setDocumentData((previous) => previous.year === nextYear ? previous : { ...previous, year: nextYear });
+    });
   }, [detectedYears, documentData.year, previewDates.length]);
 
   const yearOrders = useMemo(() => {
@@ -116,7 +118,7 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
   };
 
   return (
-    <AppShell activeTool={config.title}>
+    <AppShell>
       <div className="hero-block">
         <p className="tag">{config.title}</p>
         <h2>Generate {config.title.toLowerCase()} documents from a monitoring schedule.</h2>
@@ -160,16 +162,3 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
   );
 }
 
-export const monthlyDocumentConfig: DocumentTemplateConfig = {
-  title: "Monthly Phone Monitoring",
-  templateUrl: "/template/monthly-phone-monitoring-TEMPLATE.docx",
-  filenamePrefix: "Monthly_Phone_Monitoring",
-  yearMarker: "[YEAR]",
-};
-
-export const quarterlyDocumentConfig: DocumentTemplateConfig = {
-  title: "Quarterly Conference",
-  templateUrl: "/template/quarterly-conference-TEMPLATE.docx",
-  filenamePrefix: "Quarterly_Conference",
-  yearMarker: "[[YEAR]]",
-};
