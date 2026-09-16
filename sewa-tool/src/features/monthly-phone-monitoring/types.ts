@@ -42,4 +42,12 @@ export type GenerateDocxOptions = {
   entries: PhoneMonitoringEntry[];
   templateUrl?: string;
   templateBuffer?: ArrayBuffer;
+  yearMarker?: string;
+};
+
+export type DocumentTemplateConfig = {
+  title: string;
+  templateUrl: string;
+  filenamePrefix: string;
+  yearMarker: string;
 };

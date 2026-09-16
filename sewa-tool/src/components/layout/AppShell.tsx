@@ -1,6 +1,12 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, activeTool }: { children: ReactNode; activeTool: string }) {
+  const pathname = usePathname();
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -13,7 +19,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="workspace-shell">
         <aside className="sidebar" aria-label="Tool navigation">
           <p className="nav-label">DOCUMENTS</p>
-          <div className="nav-item active">Monthly Phone Monitoring</div>
+          <Link className={`nav-item ${pathname === "/" ? "active" : ""}`} href="/">Monthly Phone Monitoring</Link>
+          <Link className={`nav-item ${pathname === "/quarterly-conference" ? "active" : ""}`} href="/quarterly-conference">Quarterly Conference</Link>
           <p className="nav-label muted">OPERATIONS</p>
           <div className="nav-item disabled">Future tools</div>
         </aside>

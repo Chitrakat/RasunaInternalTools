@@ -42,13 +42,14 @@ export const sanitizeFilename = (input: string): string => {
   return sanitized || "sewa_document";
 };
 
-export const buildFilename = (data: { participant: string; hca: string; year: string }): { docx: string; pdf: string } => {
+export const buildFilename = (data: { participant: string; hca: string; year: string; prefix?: string }): { docx: string; pdf: string } => {
   const hcaPart = data.hca.trim().replace(/\s+/g, "_");
   const participantPart = data.participant.trim().replace(/\s+/g, "_");
   const yearPart = data.year?.trim() || "unknown";
 
-  const docxName = sanitizeFilename(`SEWA_Monthly_Phone_Monitoring_${participantPart}_${hcaPart}_${yearPart}.docx`);
-  const pdfName = sanitizeFilename(`SEWA_Monthly_Phone_Monitoring_${participantPart}_${hcaPart}_${yearPart}.pdf`);
+  const prefix = data.prefix?.trim() || "Monthly_Phone_Monitoring";
+  const docxName = sanitizeFilename(`SEWA_${prefix}_${participantPart}_${hcaPart}_${yearPart}.docx`);
+  const pdfName = sanitizeFilename(`SEWA_${prefix}_${participantPart}_${hcaPart}_${yearPart}.pdf`);
 
   return { docx: docxName, pdf: pdfName };
 };
@@ -158,6 +159,7 @@ export async function generateDocxFromTemplate({
   documentData,
   entries,
   templateUrl = DEFAULT_TEMPLATE_PATH,
+  yearMarker = "[YEAR]",
 }: GenerateDocxOptions): Promise<Blob> {
   const response = await fetch(templateUrl);
   if (!response.ok) {
@@ -180,7 +182,7 @@ export async function generateDocxFromTemplate({
     "Participant:": `Participant: ${documentData.participant}`,
     "HCA:": `HCA: ${documentData.hca}`,
     "Supervisor:": `Supervisor: ${documentData.supervisor}`,
-    "[YEAR]": documentData.year,
+    [yearMarker]: documentData.year,
   };
 
   Object.entries(replacements).forEach(([search, value]) => {
@@ -199,16 +201,18 @@ export async function generateDocxFromTemplate({
 export const generatePdfFromEntries = ({
   documentData,
   entries,
+  title = "Monthly Phone Monitoring",
 }: {
   documentData: DocumentData;
   entries: PhoneMonitoringEntry[];
+  title?: string;
 }): Blob => {
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
   let y = 56;
 
   pdf.setFontSize(18);
-  pdf.text("Monthly Phone Monitoring", 52, y);
+  pdf.text(title, 52, y);
   y += 26;
 
   pdf.setFontSize(11);
