@@ -96,13 +96,16 @@ const replaceStringInXml = (xmlDocument: Document, search: string, replace: stri
 };
 
 const setCellText = (xmlDocument: Document, cell: Element, value: string) => {
-  const paragraphs = cell.getElementsByTagNameNS(WORD_XML_NS, "p");
+  const paragraphs = Array.from(cell.getElementsByTagNameNS(WORD_XML_NS, "p"));
   let paragraph = paragraphs[0];
 
   if (!paragraph) {
     paragraph = xmlDocument.createElementNS(WORD_XML_NS, "w:p");
     cell.appendChild(paragraph);
   }
+
+  // Drop any extra paragraphs (e.g. leftover "Y or N?" label text) so only the new value remains.
+  paragraphs.slice(1).forEach((extraParagraph) => extraParagraph.parentNode?.removeChild(extraParagraph));
 
   while (paragraph.firstChild) {
     paragraph.removeChild(paragraph.firstChild);
@@ -134,11 +137,7 @@ const insertRowsIntoTable = (xmlDocument: Document, entries: PhoneMonitoringEntr
     return;
   }
 
-  const headerCells = Array.from(templateRow.getElementsByTagNameNS(WORD_XML_NS, "tc"));
-  if (headerCells[3]) {
-    setCellText(xmlDocument, headerCells[3], "Y");
-  }
-
+  // Keep the template row's original header text (e.g. "Objective Met? / Y or N?") untouched.
   const preservedRows = rowCandidates.filter((row) => row !== templateRow);
   preservedRows.forEach((node) => node.parentNode?.removeChild(node));
 
