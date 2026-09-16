@@ -121,6 +121,13 @@ describe("monitoring parser", () => {
     expect(sortDatesChronologically(selected)).toHaveLength(selected.length);
   });
 
+  it("selects the first date column when no column is provided", () => {
+    const parsed = parseMonitoringInput(sampleInput);
+    const selected = selectMonitoringDates(parsed.records);
+
+    expect(selected[0]?.toISOString().slice(0, 10)).toBe("2025-07-28");
+  });
+
   it("detects duplicates deterministically", () => {
     const dates = ["2025-07-28", "2025-08-28", "2025-12-17"];
     const duplicates = detectDuplicateDates(dates, ["2025-07-28", "2025-09-26"]);

@@ -134,6 +134,11 @@ const insertRowsIntoTable = (xmlDocument: Document, entries: PhoneMonitoringEntr
     return;
   }
 
+  const headerCells = Array.from(templateRow.getElementsByTagNameNS(WORD_XML_NS, "tc"));
+  if (headerCells[3]) {
+    setCellText(xmlDocument, headerCells[3], "Y");
+  }
+
   const preservedRows = rowCandidates.filter((row) => row !== templateRow);
   preservedRows.forEach((node) => node.parentNode?.removeChild(node));
 

@@ -12,7 +12,7 @@ export const PURPOSE_TEMPLATES = {
     `I completed the monthly check-in call with ${hcaName}.\nThe HCA reported all is going well and will reach out if support is needed.`,
 };
 
-export const DEFAULT_DATE_COLUMN_INDEX = 2;
+export const DEFAULT_DATE_COLUMN_INDEX = 0;
 export const DEFAULT_DOCUMENT_YEAR = "2025";
 
 export const monthlyDocumentConfig: DocumentTemplateConfig = {
