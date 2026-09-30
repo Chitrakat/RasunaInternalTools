@@ -12,4 +12,4 @@ Have you worked as a caregiver before? *
  Yes No
 Additional Message
 
-	I have documents that establish my identity and eligibility to work in united states. (CHECKBOX)
+	I have documents that establish my identity and eligibility to work in united states. (CHECKBOX)	

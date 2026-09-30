@@ -3,7 +3,7 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 
 let workerConfigured = false;
 
-const configureWorker = async () => {
+export const configurePdfWorker = async () => {
   if (workerConfigured) return;
   const pdfjs = await import("pdfjs-dist");
   pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -13,8 +13,8 @@ const configureWorker = async () => {
   workerConfigured = true;
 };
 
-const loadDocument = async (file: File): Promise<PDFDocumentProxy> => {
-  await configureWorker();
+export const loadPdfDocument = async (file: File): Promise<PDFDocumentProxy> => {
+  await configurePdfWorker();
   const pdfjs = await import("pdfjs-dist");
   const buffer = await file.arrayBuffer();
   const loadingTask = pdfjs.getDocument({ data: buffer });
@@ -28,7 +28,7 @@ const extractPageText = async (doc: PDFDocumentProxy, pageNumber: number): Promi
 };
 
 export const extractFirstPageText = async (file: File): Promise<string> => {
-  const doc = await loadDocument(file);
+  const doc = await loadPdfDocument(file);
   try {
     return await extractPageText(doc, 1);
   } finally {
@@ -37,7 +37,7 @@ export const extractFirstPageText = async (file: File): Promise<string> => {
 };
 
 export const extractAllPagesText = async (file: File): Promise<string[]> => {
-  const doc = await loadDocument(file);
+  const doc = await loadPdfDocument(file);
   try {
     const pages: string[] = [];
     for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber += 1) {

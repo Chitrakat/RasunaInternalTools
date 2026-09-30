@@ -1,69 +1,35 @@
 import { classifyPdfText } from "./classifier";
 import { extractComplianceDates } from "./complianceExtractor";
 import { extractAllPagesText, extractFirstPageText } from "./pdfText";
-import { extractProfileFields } from "./profileExtractor";
 
-export type PdfImportResult = {
-  documentData: { participant?: string; hca?: string; supervisor?: string };
+export type ExportImportResult = {
   dates: string[];
-  fileRoles: { profileFileName: string | null; exportFileName: string | null };
   warnings: string[];
   errors: string[];
 };
 
-export const importFromPdfPair = async (
-  files: File[],
+// Single-file flow: only the compliance export PDF is needed; names/supervisor are entered manually.
+export const importFromExportPdf = async (
+  file: File,
   complianceRowName: string,
-): Promise<PdfImportResult> => {
-  const errors: string[] = [];
+): Promise<ExportImportResult> => {
   const warnings: string[] = [];
+  const errors: string[] = [];
 
-  if (files.length !== 2) {
-    return {
-      documentData: {},
-      dates: [],
-      fileRoles: { profileFileName: null, exportFileName: null },
-      warnings,
-      errors: ["Please upload exactly two PDF files: the profile export and the compliance export."],
-    };
-  }
-
-  const classifications = await Promise.all(
-    files.map(async (file) => ({ file, kind: classifyPdfText(await extractFirstPageText(file)) })),
-  );
-
-  const profileEntry = classifications.find((entry) => entry.kind === "profile");
-  const exportEntry = classifications.find((entry) => entry.kind === "export");
-
-  const fileRoles = {
-    profileFileName: profileEntry?.file.name ?? null,
-    exportFileName: exportEntry?.file.name ?? null,
-  };
-
-  if (!profileEntry || !exportEntry) {
+  const firstPageText = await extractFirstPageText(file);
+  if (classifyPdfText(firstPageText) === "profile") {
     errors.push(
-      "Could not tell which file is the profile page and which is the compliance export. " +
-        "Please check that you uploaded one of each.",
+      "This looks like a caregiver profile PDF, not the compliance export. Please upload the compliance/export PDF instead.",
     );
-    return { documentData: {}, dates: [], fileRoles, warnings, errors };
+    return { dates: [], warnings, errors };
   }
 
-  const profileResult = extractProfileFields(await extractFirstPageText(profileEntry.file));
-  if (!profileResult.success) {
-    errors.push(...profileResult.errors);
-  }
-
-  const exportPages = await extractAllPagesText(exportEntry.file);
-  const dates = extractComplianceDates(exportPages, complianceRowName);
+  const allPagesText = await extractAllPagesText(file);
+  const dates = extractComplianceDates(allPagesText, complianceRowName);
   if (dates.length === 0) {
-    warnings.push(`No "${complianceRowName}" rows with a Completion Date were found in the compliance export.`);
+    warnings.push(`No "${complianceRowName}" rows with a Completion Date were found in this PDF.`);
   }
 
-  return {
-    documentData: profileResult.success ? profileResult.fields : {},
-    dates,
-    fileRoles,
-    warnings,
-    errors,
-  };
+  return { dates, warnings, errors };
 };
+

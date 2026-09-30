@@ -16,7 +16,7 @@ import {
 } from "@/features/monthly-phone-monitoring/generator";
 import { detectYearsFromDates, groupDatesByYear, parseMonitoringInput, selectMonitoringDates } from "@/features/monthly-phone-monitoring/parser";
 import type { DocumentData, DocumentTemplateConfig } from "@/features/monthly-phone-monitoring/types";
-import { importFromPdfPair, type PdfImportResult } from "@/features/pdf-import/importPdfs";
+import { importFromExportPdf, type ExportImportResult } from "@/features/pdf-import/importPdfs";
 
 type InputMode = "upload" | "manual";
 
@@ -32,7 +32,7 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
   const [dateColumnIndex, setDateColumnIndex] = useState(DEFAULT_DATE_COLUMN_INDEX);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [uploadResult, setUploadResult] = useState<PdfImportResult | null>(null);
+  const [uploadResult, setUploadResult] = useState<ExportImportResult | null>(null);
 
   const parsed = useMemo(() => parseMonitoringInput(rawInput), [rawInput]);
   const uploadDates = useMemo(
@@ -81,24 +81,16 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
     setDocumentData((previous) => ({ ...previous, [field]: value }));
   };
 
-  const handleFilesSelected = async (fileList: FileList | null) => {
-    const files = Array.from(fileList ?? []).filter((file) => file.type === "application/pdf");
-    if (files.length !== 2) {
-      setUploadResult({
-        documentData: {},
-        dates: [],
-        fileRoles: { profileFileName: null, exportFileName: null },
-        warnings: [],
-        errors: ["Please select exactly two PDF files: the profile export and the compliance export."],
-      });
+  const handleFileSelected = async (file: File | null) => {
+    if (!file || file.type !== "application/pdf") {
+      setUploadResult({ dates: [], warnings: [], errors: ["Please select a PDF file."] });
       return;
     }
 
     setIsImporting(true);
     try {
-      const result = await importFromPdfPair(files, config.complianceRowName);
+      const result = await importFromExportPdf(file, config.complianceRowName);
       setUploadResult(result);
-      setDocumentData((previous) => ({ ...previous, ...result.documentData }));
     } finally {
       setIsImporting(false);
     }
@@ -164,25 +156,22 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
         <section className="panel main-panel-card">
           <div className="section-header"><div><p className="section-number">01</p><h3>ENTER MONITORING DATA</h3></div></div>
           <div className="segmented-control" role="tablist">
-            <button type="button" role="tab" aria-selected={mode === "upload"} className={`segmented-option ${mode === "upload" ? "active" : ""}`} onClick={() => setMode("upload")}>Upload Files</button>
+            <button type="button" role="tab" aria-selected={mode === "upload"} className={`segmented-option ${mode === "upload" ? "active" : ""}`} onClick={() => setMode("upload")}>Upload File</button>
             <button type="button" role="tab" aria-selected={mode === "manual"} className={`segmented-option ${mode === "manual" ? "active" : ""}`} onClick={() => setMode("manual")}>Manual</button>
           </div>
 
           {mode === "upload" ? (
             <div className="field-group">
-              <label className="field-label" htmlFor="pdf-upload">Upload profile export + compliance export (2 PDFs)</label>
+              <label className="field-label" htmlFor="pdf-upload">Upload compliance export PDF</label>
               <input
                 id="pdf-upload"
                 type="file"
                 accept="application/pdf"
-                multiple
-                onChange={(event) => void handleFilesSelected(event.target.files)}
+                onChange={(event) => void handleFileSelected(event.target.files?.[0] ?? null)}
               />
-              {isImporting ? <p>Reading PDFs...</p> : null}
+              {isImporting ? <p>Reading PDF...</p> : null}
               {uploadResult ? (
                 <div className="summary-box">
-                  <p>Profile file</p><strong>{uploadResult.fileRoles.profileFileName ?? "Not detected"}</strong>
-                  <p>Compliance export file</p><strong>{uploadResult.fileRoles.exportFileName ?? "Not detected"}</strong>
                   <p>Dates found</p><strong>{uploadResult.dates.length}</strong>
                 </div>
               ) : null}
