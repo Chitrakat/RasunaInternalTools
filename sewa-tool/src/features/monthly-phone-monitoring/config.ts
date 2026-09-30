@@ -20,6 +20,7 @@ export const monthlyDocumentConfig: DocumentTemplateConfig = {
   templateUrl: "/template/monthly-phone-monitoring-TEMPLATE.docx",
   filenamePrefix: "Monthly_Phone_Monitoring",
   yearMarker: "[YEAR]",
+  complianceRowName: "FHCA Monthly Telephone Monitoring",
 };
 
 export const quarterlyDocumentConfig: DocumentTemplateConfig = {
@@ -27,4 +28,5 @@ export const quarterlyDocumentConfig: DocumentTemplateConfig = {
   templateUrl: "/template/quarterly-conference-TEMPLATE.docx",
   filenamePrefix: "Quarterly_Conference",
   yearMarker: "[[YEAR]]",
+  complianceRowName: "Quarterly Conference",
 };

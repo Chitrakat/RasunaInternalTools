@@ -16,8 +16,12 @@ import {
 } from "@/features/monthly-phone-monitoring/generator";
 import { detectYearsFromDates, groupDatesByYear, parseMonitoringInput, selectMonitoringDates } from "@/features/monthly-phone-monitoring/parser";
 import type { DocumentData, DocumentTemplateConfig } from "@/features/monthly-phone-monitoring/types";
+import { importFromPdfPair, type PdfImportResult } from "@/features/pdf-import/importPdfs";
+
+type InputMode = "upload" | "manual";
 
 export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConfig }) {
+  const [mode, setMode] = useState<InputMode>("upload");
   const [rawInput, setRawInput] = useState("");
   const [documentData, setDocumentData] = useState<DocumentData>({
     participant: "",
@@ -27,9 +31,18 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
   });
   const [dateColumnIndex, setDateColumnIndex] = useState(DEFAULT_DATE_COLUMN_INDEX);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [uploadResult, setUploadResult] = useState<PdfImportResult | null>(null);
 
   const parsed = useMemo(() => parseMonitoringInput(rawInput), [rawInput]);
-  const previewDates = useMemo(() => selectMonitoringDates(parsed.records, dateColumnIndex), [parsed.records, dateColumnIndex]);
+  const uploadDates = useMemo(
+    () => (uploadResult?.dates ?? []).map((iso) => new Date(`${iso}T00:00:00Z`)),
+    [uploadResult],
+  );
+  const previewDates = useMemo(
+    () => (mode === "manual" ? selectMonitoringDates(parsed.records, dateColumnIndex) : uploadDates),
+    [mode, parsed.records, dateColumnIndex, uploadDates],
+  );
   const yearGroups = useMemo(() => groupDatesByYear(previewDates), [previewDates]);
   const detectedYears = useMemo(() => detectYearsFromDates(previewDates), [previewDates]);
 
@@ -66,6 +79,29 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
 
   const updateField = (field: keyof DocumentData, value: string) => {
     setDocumentData((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const handleFilesSelected = async (fileList: FileList | null) => {
+    const files = Array.from(fileList ?? []).filter((file) => file.type === "application/pdf");
+    if (files.length !== 2) {
+      setUploadResult({
+        documentData: {},
+        dates: [],
+        fileRoles: { profileFileName: null, exportFileName: null },
+        warnings: [],
+        errors: ["Please select exactly two PDF files: the profile export and the compliance export."],
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const result = await importFromPdfPair(files, config.complianceRowName);
+      setUploadResult(result);
+      setDocumentData((previous) => ({ ...previous, ...result.documentData }));
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const downloadBlob = (blob: Blob, fileName: string) => {
@@ -127,8 +163,42 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
       <div className="workflow-grid">
         <section className="panel main-panel-card">
           <div className="section-header"><div><p className="section-number">01</p><h3>ENTER MONITORING DATA</h3></div></div>
-          <Textarea label="Monitoring Schedule" value={rawInput} onChange={(event) => setRawInput(event.target.value)} rows={12} aria-label="Monitoring schedule input" />
-          {parsed.errors.length > 0 ? <div className="status-box error-box" role="alert"><strong>Parsing issue:</strong><ul>{parsed.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
+          <div className="segmented-control" role="tablist">
+            <button type="button" role="tab" aria-selected={mode === "upload"} className={`segmented-option ${mode === "upload" ? "active" : ""}`} onClick={() => setMode("upload")}>Upload Files</button>
+            <button type="button" role="tab" aria-selected={mode === "manual"} className={`segmented-option ${mode === "manual" ? "active" : ""}`} onClick={() => setMode("manual")}>Manual</button>
+          </div>
+
+          {mode === "upload" ? (
+            <div className="field-group">
+              <label className="field-label" htmlFor="pdf-upload">Upload profile export + compliance export (2 PDFs)</label>
+              <input
+                id="pdf-upload"
+                type="file"
+                accept="application/pdf"
+                multiple
+                onChange={(event) => void handleFilesSelected(event.target.files)}
+              />
+              {isImporting ? <p>Reading PDFs...</p> : null}
+              {uploadResult ? (
+                <div className="summary-box">
+                  <p>Profile file</p><strong>{uploadResult.fileRoles.profileFileName ?? "Not detected"}</strong>
+                  <p>Compliance export file</p><strong>{uploadResult.fileRoles.exportFileName ?? "Not detected"}</strong>
+                  <p>Dates found</p><strong>{uploadResult.dates.length}</strong>
+                </div>
+              ) : null}
+              {uploadResult && uploadResult.errors.length > 0 ? (
+                <div className="status-box error-box" role="alert"><strong>Import issue:</strong><ul>{uploadResult.errors.map((error) => <li key={error}>{error}</li>)}</ul></div>
+              ) : null}
+              {uploadResult && uploadResult.warnings.length > 0 ? (
+                <div className="status-box" role="status"><strong>Warning:</strong><ul>{uploadResult.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <Textarea label="Monitoring Schedule" value={rawInput} onChange={(event) => setRawInput(event.target.value)} rows={12} aria-label="Monitoring schedule input" />
+              {parsed.errors.length > 0 ? <div className="status-box error-box" role="alert"><strong>Parsing issue:</strong><ul>{parsed.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
+            </>
+          )}
 
           <div className="section-header small-gap"><div><p className="section-number">02</p><h3>DOCUMENT INFORMATION</h3></div></div>
           <div className="two-column-grid">
@@ -139,12 +209,14 @@ export function DocumentGeneratorPage({ config }: { config: DocumentTemplateConf
           </div>
 
           <div className="section-header small-gap"><div><p className="section-number">03</p><h3>DATE TO USE FOR PHONE CALL LOG</h3></div></div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="date-column">Select date column</label>
-            <select id="date-column" className="select" value={dateColumnIndex} onChange={(event) => setDateColumnIndex(Number(event.target.value))}>
-              <option value={0}>First date column</option><option value={1}>Second date column</option><option value={2}>Third date column</option>
-            </select>
-          </div>
+          {mode === "manual" ? (
+            <div className="field-group">
+              <label className="field-label" htmlFor="date-column">Select date column</label>
+              <select id="date-column" className="select" value={dateColumnIndex} onChange={(event) => setDateColumnIndex(Number(event.target.value))}>
+                <option value={0}>First date column</option><option value={1}>Second date column</option><option value={2}>Third date column</option>
+              </select>
+            </div>
+          ) : null}
           {previewDates.length > 0 ? <div className="preview-stack"><h4>PHONE CALL LOG DATES</h4><ul className="date-list">{previewDates.map((date) => <li key={`${date.toISOString()}-${date.getTime()}`}>{date.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric", timeZone: "UTC" })}</li>)}</ul></div> : null}
           {!validation.success ? <div className="status-box error-box" role="alert"><strong>Missing required fields:</strong><ul>{validation.errors.map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
         </section>

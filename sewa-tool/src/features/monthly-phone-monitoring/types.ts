@@ -50,4 +50,5 @@ export type DocumentTemplateConfig = {
   templateUrl: string;
   filenamePrefix: string;
   yearMarker: string;
+  complianceRowName: string;
 };
