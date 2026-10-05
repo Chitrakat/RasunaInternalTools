@@ -119,7 +119,6 @@ export const parseMonitoringInput = (rawInput: string): ParsedMonitoringTable =>
 };
 
 export const selectMonitoringDates = (records: MonitoringRecord[], columnIndex: number = DEFAULT_DATE_COLUMN_INDEX): Date[] => {
-  // Keep the same order the records were entered in rather than re-sorting chronologically.
   return records
     .map((record) => {
       const value = record.dates[columnIndex] ?? null;
@@ -127,7 +126,8 @@ export const selectMonitoringDates = (records: MonitoringRecord[], columnIndex: 
       const date = new Date(`${value}T00:00:00Z`);
       return Number.isNaN(date.getTime()) ? null : date;
     })
-    .filter((date): date is Date => date !== null);
+    .filter((date): date is Date => date !== null)
+    .sort((left, right) => left.getTime() - right.getTime());
 };
 
 export const detectYearsFromDates = (dates: Date[]): string[] => {

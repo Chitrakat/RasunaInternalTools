@@ -22,5 +22,5 @@ export const extractComplianceDates = (allPagesText: string[], complianceName: s
     }
   }
 
-  return isoDates;
+  return isoDates.sort();
 };

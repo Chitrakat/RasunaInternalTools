@@ -16,14 +16,14 @@ Quarterly Conference 3/13/26 6/13/26 3/13/26
 `;
 
 describe("extractComplianceDates", () => {
-  it("extracts Completion Date for each matching monthly monitoring row, in order", () => {
+  it("extracts Completion Dates in ascending order", () => {
     const dates = extractComplianceDates([EXPORT_PAGE_TEXT], "FHCA Monthly Telephone Monitoring");
-    expect(dates).toEqual(["2026-09-28", "2026-08-26", "2026-07-29", "2026-06-24"]);
+    expect(dates).toEqual(["2026-06-24", "2026-07-29", "2026-08-26", "2026-09-28"]);
   });
 
-  it("extracts Completion Date for each matching quarterly conference row, in order", () => {
+  it("extracts quarterly Completion Dates in ascending order", () => {
     const dates = extractComplianceDates([EXPORT_PAGE_TWO_TEXT], "Quarterly Conference");
-    expect(dates).toEqual(["2026-09-17", "2026-06-24", "2026-03-13"]);
+    expect(dates).toEqual(["2026-03-13", "2026-06-24", "2026-09-17"]);
   });
 
   it("returns an empty list when the compliance name is not present", () => {
