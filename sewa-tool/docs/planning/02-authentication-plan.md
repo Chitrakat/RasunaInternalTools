@@ -1,6 +1,8 @@
 # 2. Authentication Plan for the Matching App
 
-Status: 🔴 Needs decision
+Status: 🟡 Leaning Supabase Auth (updated 2026-10-05)
+
+Update: doc 1 now recommends Supabase for the database. Supabase Auth (Option A) then covers login, sessions, and password reset with the same vendor, and row-level security can enforce access at the data layer. Option B remains the fallback if Neon is chosen instead. Staff: 3 now, growing, mid-low technical comfort, so admin-created accounts with a simple password-reset flow are needed.
 
 ## Problem
 

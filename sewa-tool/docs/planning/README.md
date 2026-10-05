@@ -8,6 +8,7 @@ This folder tracks feature requests, open problems, and design decisions raised 
 2. [02-authentication-plan.md](02-authentication-plan.md) — Login/auth approach for the matching app once it's hosted publicly on Vercel.
 3. [03-caregiver-form-updates.md](03-caregiver-form-updates.md) — Caregiver application form changes + Google Sheets automation.
 4. [04-google-sheets-feedback.md](04-google-sheets-feedback.md) — Prep notes/questions for the upcoming Google Sheets/Excel feedback meeting.
+5. [05-dashboard-and-tasks.md](05-dashboard-and-tasks.md) — Dashboard redesign and daily tasks/reminders moved out of Excel.
 
 ## Status Legend
 - 🔴 Open question — needs client/decision input
@@ -19,8 +20,9 @@ This folder tracks feature requests, open problems, and design decisions raised 
 
 | Item | Status |
 |---|---|
-| Caregiver matching search tool | 🔴 Requirements gathering |
-| Auth for matching app | 🔴 Needs decision (see doc 2) |
+| Caregiver matching search tool | 🟡 Direction decided (Supabase + phased Excel migration); details pending |
+| Auth for matching app | 🟡 Leaning Supabase Auth (see doc 2) |
+| Dashboard + daily tasks | 🔴 Requirements gathering |
 | Google Sheets auto-fill from form | 🟡 Approach proposed |
 | Caregiver form field changes (zip + travel radius, willing-to-drive) | 🟡 Approach proposed |
 | Google Sheets/Excel data storage feedback | 🔴 Meeting pending |
