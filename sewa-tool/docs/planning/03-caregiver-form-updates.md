@@ -1,23 +1,25 @@
 # 3. Caregiver Application Form Updates
 
-Status: 🟡 Approach proposed
+Status: 🟡 Workbook received; form platform and field decisions pending (updated 2026-10-19)
 
 ## Current State (from `template/oldForm/caregiverForm.txt`)
 
 Fields today: Full Name, Email, Phone, Zip Code, Preferred Locations (broad regions: West Side Chicago, Southside Chicago, North & Northwestern Chicago, etc.), Preferred Working Hours (Morning/Afternoon/Evening), Availability (Full-time/Part-time), prior caregiver experience (Y/N), Additional Message, work-eligibility documents checkbox.
 
-Current workflow: applicant fills out form on the client's website → an email is sent to the admin → admin manually copies the submission into a Google Sheet.
+Current workflow (per prior notes): applicant fills out a form on the client's website → an email is sent to the admin → admin manually copies the submission into a spreadsheet.
 
-## 2.1 — Automate Google Sheets Filling
+The received workbook's `HCA APPLICANTS` columns are name, phone, email, ZIP / Area, experience, employment status, status date, paperwork / ID, and a pertinent note. This is not the same as the previously documented form-field list; verify the live form and any intervening manual edits before designing intake. Do not put applicant records or contact details in this plan.
 
-Problem: admin currently retypes/copies each emailed submission into Google Sheets by hand.
+## 2.1 — Automate Spreadsheet Intake
+
+Problem: the website currently emails each application and staff manually enter it in the spreadsheet. The client wants to keep the spreadsheet for now and automate this step. The exact spreadsheet platform and location (Google Sheets, Excel Online, or a local workbook) must be confirmed before choosing the integration.
 
 Proposed approaches (in order of preference):
-1. **Direct API write on submit** — when the form is submitted, call the Google Sheets API (via a service account) and append a row directly. No email-parsing needed; most reliable. Requires knowing what platform hosts the form today (native website form builder? Typeform/Google Forms/Jotform? custom code?).
-2. **Google Forms → Sheets (if the form itself moves to Google Forms)** — Google Forms already auto-populates a linked Sheet with zero code. Only viable if the client is open to moving the form itself onto Google Forms.
-3. **Email parsing fallback** — if we can't touch the form's submit handler, a script (Google Apps Script "on email received" trigger, or a Zapier/Make automation) parses the admin's inbox and appends a row. More fragile (breaks if email format changes), but works without form access.
+1. **Interim: automate website form → existing spreadsheet** — use the form host's supported integration or a secure server-side connector to validate submissions and add them to `HCA APPLICANTS`. Avoid email parsing if the form's submit action can be changed.
+2. **Fallback: email automation** — only if the form cannot be changed and the client approves it. Validate the email format and route parsing failures for manual review; do not silently create incomplete applicant records.
+3. **After app cutover: direct intake into the app** — optionally replace spreadsheet writes with a server-side endpoint that creates an applicant record in a review state, avoiding a second source of truth.
 
-🔴 Open question: What actually hosts/renders the current caregiver form (Squarespace/Wix/WordPress plugin/custom code)? This determines which option above is possible. Need this before picking an approach.
+The current form is hosted on WordPress. 🔴 Identify the form plugin and available submission hooks/integrations, and confirm the production form/submission route.
 
 ## 2.2 — Form Field Changes
 
@@ -34,9 +36,9 @@ Why this is better: precise zip + travel radius is exactly the input the matchin
 2. Email
 3. Phone
 4. Zip Code *(kept — now the primary location field)*
-5. Willing to travel up to: ⟶ dropdown (5/10/15/25/50 miles) or numeric input *(replaces "Preferred Locations")*
-6. Willing to drive? (Yes/No)
-7. Own a vehicle? (Yes/No) — optional add, useful if "willing to drive" alone isn't enough
+5. Willing to travel up to: dropdown or validated numeric miles *(replaces broad preferred regions; value/range needs client agreement)*
+6. Willing to drive? (Yes/No) — only if it affects eligibility/operations
+7. Own a vehicle? (Yes/No) — include only if staff confirm it is necessary and appropriate to ask
 8. Preferred Working Hours — Morning/Afternoon/Evening (unchanged)
 9. Availability — Full-time/Part-time (unchanged)
 10. Worked as caregiver before? Yes/No (unchanged)
@@ -44,10 +46,11 @@ Why this is better: precise zip + travel radius is exactly the input the matchin
 12. Additional Message (unchanged)
 13. Work-eligibility documents checkbox (unchanged)
 
-🔴 Open question: confirm "Languages spoken" should be added — it's referenced as a key match criterion in doc 1 but isn't on the current form.
+🔴 Open question: confirm which languages to offer and whether "other" should be supported. Languages are a matching preference in doc 1, not a hard requirement.
 
 ## Suggested Next Steps
-1. Confirm where/how the current form is hosted (needed for 2.1).
-2. Get client sign-off on the proposed field list above (especially the new language field and drive/vehicle fields).
-3. Implement chosen Sheets-automation approach.
-4. Update form fields once locations/hosting question is answered.
+1. Compare the live WordPress form with the workbook's `HCA APPLICANTS` columns; identify the form plugin and current email submission route.
+2. Confirm the live spreadsheet platform and location (still unknown), then choose the WordPress-to-spreadsheet integration and automate writes into `HCA APPLICANTS`.
+3. Confirm who reviews new applicants.
+4. Approve required fields and validation rules, especially ZIP, travel range, language, and availability; decide whether drive/vehicle questions are needed.
+5. Implement the spreadsheet connector only after confirming its platform, access model, and test copy. Keep an explicit manual-review path for malformed submissions; revisit direct app intake after cutover.

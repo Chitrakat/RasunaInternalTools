@@ -1,6 +1,6 @@
 # 1. Caregiver ↔ Client (Senior) Matching System
 
-Status: 🟡 Core direction decided, details pending (updated 2026-10-05)
+Status: 🟡 Direction decided; workbook received; workflow decisions pending (updated 2026-10-19)
 
 Related: dashboard/tasks are in [05-dashboard-and-tasks.md](05-dashboard-and-tasks.md).
 
@@ -10,12 +10,15 @@ Related: dashboard/tasks are in [05-dashboard-and-tasks.md](05-dashboard-and-tas
 - Language is a preference only (not a hard requirement); a person can speak multiple languages, and more matches is better.
 - Distance: client zip to caregiver zip, honoring each caregiver's own travel radius.
 - Availability is days and shifts (to be confirmed).
-- Assignment history is currently one line in a tab, which is messy; the new `assignments` table replaces this.
+- HCA lifecycle: applicants start in `HCA APPLICANTS`, move to `READY TO WORK HCA` while ready and waiting for a client, then appear in `ACTIVE EMPLOYEES` when matched with a client.
+- `CLIENT PIPELINE` tracks clients waiting for CCU.
+- `DAILY FOLLOW-UP` is a log of notes/events. Actions and follow-up notes accumulate in the row; assignment history is currently only buried in old working notes, with no dedicated history.
+- Staff want a structured caregiver-client assignment history in the new tool.
 - No privacy/HIPAA obligations; no health info or SSNs in the data (still avoid storing anything sensitive we don't need).
 - Client will own and pay for the hosting accounts.
-- All data is in one Excel workbook with tabs: caregivers, clients, daily tasks/reminders/updates, and a mostly-empty dashboard.
+- The workbook is `template/RASUNA Master Operations.xlsx`. Its tabs are `DASHBOARD`, `DAILY FOLLOW-UP`, `CLIENT PIPELINE`, `ACTIVE EMPLOYEES`, `READY TO WORK HCA`, `HCA APPLICANTS`, and `Archive`.
+- The workbook has separate tabs for stages of the HCA process, a client pipeline and archive, and follow-ups; it does not have a dedicated assignments tab or a separate approved-clients tab.
 - 3 staff now, growth planned; mid-low technical comfort.
-- Existing match/assignment history must be imported.
 
 ## Problem
 
@@ -33,29 +36,58 @@ A small internal web tool that lets staff search/filter for the best caregiver-c
 - Store data in managed Postgres. Staff never see SQL; they use the app. Pitch it as "your spreadsheet, but searchable, with a real dashboard", not a new system.
 - **Hosting decision: Supabase** (Postgres + Auth + spreadsheet-like Table Editor + PostGIS + row-level security, one vendor, resolves doc 2). Neon/Vercel Postgres (now Neon) are DB-only and would need a separate auth vendor.
   - Caveats: free tier pauses after inactivity and has no real backups, so use a paid plan in production. HIPAA is not a concern per the client, so the standard paid plan is enough.
-  - Fallback to minimize lock-in: Neon + Auth.js.
-- **Migration phases** (avoid two-way Excel sync; two live sources of truth drift):
-  1. Import: one-time, re-runnable import of Excel tabs; clean zips, normalize languages, geocode.
-  2. Matching page; Excel kept as a safety net briefly.
-  3. Dashboard + tasks (doc 5) — this is what makes staff stop opening Excel.
-  4. Cutover: app is source of truth, Excel archived; add Export to Excel/CSV.
-- Data model (draft — validate against the real Excel tabs):
-  - `caregivers`: id, name, contact info, zip code, lat/lng (geocoded from zip), languages[], availability (days/shifts), max travel distance, willing to drive (bool), prior experience (bool/years), status (pending/processing/active/inactive), source (form/manual/import), notes.
-  - `clients` (seniors): id, name, contact info, zip code, lat/lng, languages needed, schedule needed, care needs, status (pending/processing/active/inactive), notes.
-  - `assignments`: caregiver_id, client_id, start/end dates, status, notes. Imported history lives here.
-  - `tasks`: see doc 5.
+  - Fallback if Supabase is rejected: choose a database and compatible managed auth provider together; do not select Neon + Auth.js by default.
+- **Migration rule:** Excel is a one-time import source and temporary parallel-check only. Avoid two-way sync; two live sources of truth will drift.
+- **Proposed rollout:** confirm workflows and map data first; build a safe, repeatable import; then deliver core records/statuses/tasks, matching, and dashboard; cut over only after staff validation. See the ordered execution plan below.
+- **Proposed entities (validate before schema work):**
+  - `caregivers`: one person record across applicant → ready/waiting → active/matched stages; identity/contact, ZIP, availability, experience, language, travel preferences, source, and notes. Confirm a stable cross-tab key before merging rows.
+  - `clients`: identity/contact, ZIP/city, referral and insurance details, case-manager details, lifecycle status, owner, and notes. The current pipeline represents clients waiting for CCU; confirm later stages and how `Archive` is used.
+  - `assignments`: create a structured record whenever a caregiver is matched to a client, with dates/status and audit history. Historical assignments may be reconstructed from old working notes only when staff can verify the relationship and dates; preserve unparsed notes as notes.
+  - `activity`: append-only dated notes/events linked to a client/caregiver where staff can identify the subject. `DAILY FOLLOW-UP` is primarily event history, not a set of tasks; see doc 5.
+  - `tasks`: separate actionable follow-ups with an owner and due date; do not automatically convert every activity note into a task.
 - Matching logic:
   - Geocode zip codes to lat/lng once (on save), then query by distance (`ST_DWithin` in PostGIS, or a simple haversine formula in plain SQL/JS) instead of string-matching nearby zips.
-  - Combine distance filter with hard filters (language match, availability overlap) and produce a ranked list (closest + best-matching first).
+  - Apply confirmed hard eligibility filters (distance within the caregiver's own travel limit and availability overlap, once defined); treat language as a preference, not a hard filter. Experience is a yes/no filter, not a ranking factor. Explain match reasons in the results.
 - UI: a search/filter page — pick a client (or enter ad hoc criteria), see ranked list of eligible caregivers with distance, language, availability shown; maybe a manual "assign" action that records the match.
+
+## Workbook Inventory (first-pass, no personal records)
+
+| Workbook tab | Header-level contents | Initial interpretation / migration note |
+|---|---|---|
+| `CLIENT PIPELINE` | Client identity/contact, city/ZIP, insurance/MCO, CCU, client status/date, case managers, referral source, owner, next follow-up, note | Clients waiting for CCU; confirm later stages, status meanings, and identity keys. |
+| `Archive` | Same client/referral fields as `CLIENT PIPELINE` | Likely closed/archived client records, but confirm whether rows move, copy, or represent history. |
+| `HCA APPLICANTS` | Name, phone, email, ZIP/Area, experience, employment status/date, paperwork/ID, note | First HCA stage: new applicants. |
+| `READY TO WORK HCA` | Employee ID, name, phone, ZIP/Area, availability, experience, employment status, owner, note | HCA is ready and waiting to be matched with a client. |
+| `ACTIVE EMPLOYEES` | Employee ID, name, availability, employment status, TTP, owner, note | HCA has been matched with a client; verify Employee ID is consistent across stages. |
+| `DAILY FOLLOW-UP` | Date, type, name, action/note, owner, due/follow-up, status, result/follow-up note | Event/note log where notes accumulate; only explicitly actionable follow-ups should become tasks. |
+| `DASHBOARD` | Counts for client/HCA pipeline, readiness, follow-ups, missing setup data, and ownership notes | Rebuild as app queries after definitions are confirmed; two client metrics contain broken `#REF!` references. |
+
+This is a column inventory, not a finalized schema. It intentionally excludes workbook row values and personal information.
+
+## Anonymized Data Profile (2026-10-19)
+
+Counts below use non-empty name/record keys and status categories only; no names, contact details, or notes were output.
+
+- `CLIENT PIPELINE`: 36 named rows; 34 have status `Referral Sent to CCU`, 1 `Interested`, and 1 has no status.
+- `Archive`: 54 named rows, but only 29 have an SN value; all 29 IDs also occur in `CLIENT PIPELINE`. The other 25 rows need identity review before import or deduplication.
+- HCA rows: 116 applicants; 24 `READY TO WORK HCA` records (23 have an Employee ID); 57 active-employee records (all have an Employee ID). Only 1 Employee ID overlaps between the ready and active tabs, so do not assume IDs currently link the same person across stages.
+- HCA status values also need reconciliation with the stage descriptions: applicant statuses are `Applied`/`Interested`; 19 of the 24 ready-tab rows have no employment status (the other values include `Ready to Work`, `Onboarding / Training`, and `Paperwork In Progress`); active-tab values include `Active`, `On Hold`, and `Vacation`.
+- `DAILY FOLLOW-UP`: 42 named rows, with 22 `Done`, 11 `In Progress`, and 9 `Open`.
+
+These are workbook snapshot counts, not import totals. Re-run a privacy-safe preflight after the source spreadsheet is confirmed and before migrating data.
 
 ## Open Questions for Client
 - 🟡 Anything else that should drive a match (gender preference, care skills, pets/smoking, etc.)? Confirmed so far: distance, language, availability, experience.
-- 🔴 Can we get a copy of the Excel workbook (anonymized if needed)? Client says yes, soon. Column names/tabs drive the schema and import script.
-- 🟡 Availability is days and shifts; client will confirm the exact format.
-- 🔴 **Statuses (pending, processing, ...): what each means and who moves records between them. Client will confirm; this is important because the dashboard and pipeline depend on it.**
-- 🔴 Assignment history is one line in a tab. Need the Excel to see how to parse it into structured `assignments` rows (messy import expected).
-- 🔴 Should the caregiver form (doc 3) write directly into `caregivers` as a "pending" record? Explained to client; no answer yet (see below).
+- ✅ Workbook received and inspected. Header-level inventory is above; the import must still profile values, duplicates, missing fields, and cross-tab identities without exposing client data in source control.
+- ✅ Main HCA lifecycle confirmed: `HCA APPLICANTS` → `READY TO WORK HCA` (ready/waiting) → `ACTIVE EMPLOYEES` (matched with a client). 🔴 The workbook's row statuses are not fully consistent with the stage description; agree how to interpret blanks, onboarding, paperwork, hold, and vacation.
+- ✅ `CLIENT PIPELINE` is for clients waiting for CCU. 🔴 Confirm later client stages and what `Archive` means; its IDs overlap with the pipeline and many archived rows have no ID.
+- 🔴 Confirm availability format (days/shifts versus free-form values) and how to normalize existing values.
+- 🔴 Confirm a stable identifier for the same HCA across `HCA APPLICANTS`, `READY TO WORK HCA`, and `ACTIVE EMPLOYEES`; the current Employee ID overlap is insufficient for reliable cross-tab merging. Identify safe manual review rules where no ID exists.
+- 🔴 There is no dedicated assignment history today; old working notes are the only known source. Agree on manual review/reconstruction rules; start structured history for new assignments.
+- ✅ `DAILY FOLLOW-UP` rows are notes/events whose action/result text accumulates. 🔴 Confirm how actionable due follow-ups should become separate tasks.
+- 🔴 The workbook dashboard has broken `#REF!` formulas for approved/active client counts and clients missing case-manager details. Confirm the intended definitions; calculate these from database fields in the app rather than copying broken formulas.
+- 🔴 Confirm whether staff approve an imported-data cleanup report before the import is committed.
+- ✅ Keep the spreadsheet as the caregiver-intake destination for now and automate the current website-to-spreadsheet workflow. 🔴 Revisit direct app intake only after cutover and client approval (doc 3).
 
 ### Resolved
 - Experience: yes/no filter only, no ranking.
@@ -64,12 +96,16 @@ A small internal web tool that lets staff search/filter for the best caregiver-c
 - HIPAA/privacy: not applicable; no health info or SSNs.
 - Account ownership/payment: client.
 
-### Form to database question, explained
-Today: applicant submits the form, an email goes to the admin, the admin retypes it into Excel. Option A (recommended): the form submission is saved directly as a new row in `caregivers` with status "pending", and it appears in the app for staff to review, with no retyping. Option B: the form keeps writing to Google Sheets (doc 3) and staff move the data manually or via an import. Option A needs the form to be able to send data to our app; this depends on how the form is hosted (doc 3).
+### Form intake decision
+For now, preserve the spreadsheet workflow and automate the current website submission into `HCA APPLICANTS`. Confirm the live form host and spreadsheet platform/location before implementing the connector. Direct app intake is a later option after cutover, not the interim target (doc 3).
 
-## Suggested Next Steps
-1. Get the Excel workbook and map every tab/column to the model above.
-2. Get the status definitions (what each means, who changes them).
-3. Design schema, build import script from the existing sheet (including parsing the one-line assignment history).
-4. Build search/filter UI as a new page/route in this Next.js app.
-5. Only after the above is stable, revisit whether the caregiver form (doc 3) should write directly into this DB instead of / in addition to Google Sheets.
+## Ordered Execution Plan
+1. Confirm the remaining details: stable cross-tab identifiers, later client stages/archive behavior, availability format, task rules, dashboard definitions, auth permissions, and spreadsheet/form platform. Keep dependent production code gated.
+2. Deliver the near-term automation: connect the WordPress form to the current spreadsheet and `HCA APPLICANTS` after the plugin, live spreadsheet platform, and test destination are confirmed.
+3. Create a field map for all seven tabs; profile missing values, inconsistent statuses, IDs, and free-text fields without copying personal data into docs or source control.
+4. Agree on canonical entities and a cleanup report. Implement a non-destructive, repeatable import with dry-run validation; do not infer identities or assignments from unstructured notes.
+5. Build the protected operations core: sign-in, client/caregiver records, lifecycle transitions, ownership, structured assignment history, and append-only activity history.
+6. Add follow-up tasks and the agreed dashboard; then implement matching with confirmed availability and distance rules, language preference, and experience filter.
+7. Validate workflows and imported data with staff. Decide with the client when/if the app becomes authoritative; provide Excel/CSV export and archive the workbook only after explicit cutover approval.
+
+**Execution status:** Initial workbook mapping is done. Staff clarified the main HCA lifecycle, CCU-waiting client pipeline, event-log use, and need for assignment history. Remaining data-model and integration decisions are listed above; do not guess identities or import unverified historical assignments.

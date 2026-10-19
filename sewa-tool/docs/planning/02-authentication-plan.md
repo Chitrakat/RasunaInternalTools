@@ -1,8 +1,8 @@
 # 2. Authentication Plan for the Matching App
 
-Status: 🟡 Leaning Supabase Auth (updated 2026-10-05)
+Status: 🟡 Supabase Auth recommended to align with the database proposal; client confirmation pending (updated 2026-10-19)
 
-Update: doc 1 now recommends Supabase for the database. Supabase Auth (Option A) then covers login, sessions, and password reset with the same vendor, and row-level security can enforce access at the data layer. Option B remains the fallback if Neon is chosen instead. Staff: 3 now, growing, mid-low technical comfort, so admin-created accounts with a simple password-reset flow are needed.
+Doc 1 recommends Supabase for the database. Prefer Supabase Auth so identity and database access policies are designed together. The client confirms each staff member needs an individual account and wants admin/manager and regular-staff roles. The exact permission matrix, account administrator, and any existing company SSO still need to be determined. Staff: 3 now, growing, mid-low technical comfort.
 
 ## Problem
 
@@ -10,39 +10,34 @@ Once the caregiver-matching tool (doc 1) is deployed as a web app on Vercel, it'
 
 ## Options (ranked by fit for a small internal tool)
 
-### Option A — Managed auth provider (recommended)
-Use a hosted auth service instead of hand-rolling login/password storage:
-- **Clerk** or **Auth.js (NextAuth)** with a credentials or email/password provider — both have first-class Next.js support.
-- **Supabase Auth** — good fit if the DB (doc 1) also ends up on Supabase, since users + data live together.
-- Pros: handles password hashing, session cookies, password reset, rate limiting, brute-force protection for you. Much lower security risk than DIY.
-- Cons: small learning curve, possible cost at scale (irrelevant here — handful of staff users).
+### Option A — Supabase Auth (recommended)
+Use Supabase Auth with the Supabase database proposed in doc 1. Confirm whether staff should sign in with managed email/password accounts or an existing SSO provider before implementation.
 
-### Option B — Simple credentials + NextAuth "Credentials" provider, self-managed user table
-- Store a small `users` table (email + bcrypt/argon2 password hash) in the same Postgres DB.
-- Use NextAuth (Auth.js) purely for session/cookie handling, with your own credentials check against that table.
-- Good middle ground: full control over the user list (client can just add staff manually), still get secure session handling from the library.
+### Option B — Auth.js with a separate identity strategy
+Consider only if Supabase is rejected or there is a concrete requirement it cannot meet. Avoid building a custom password table unless the client accepts the added security and account-maintenance burden.
 
 ### Option C — Zero-code gate (fastest, least flexible)
 - Vercel supports simple **password protection** on deployments (paid plans) or you can put the whole app behind a middleware check with one shared password.
 - Fine as a stopgap, but doesn't give per-user accounts, audit trail, or easy revocation — not recommended as the long-term answer since client explicitly wants username/password per user.
 
 ## Recommendation
-Option B: Auth.js (NextAuth) Credentials provider + a `users` table in the same database used for caregivers/clients, with hashed passwords (bcrypt) and secure httpOnly session cookies. This keeps everything in one DB, gives real per-staff accounts, and doesn't require handing user data to a third party. If the client would rather not maintain a user table at all, fall back to Option A (Clerk/Supabase Auth).
+Use Supabase Auth if the client approves the Supabase platform recommendation. Choose managed SSO if staff already use a supported company identity provider and the client prefers it. Revisit Auth.js only if the database/provider decision changes.
 
 ## Security Requirements (non-negotiable regardless of option chosen)
-- Passwords hashed with bcrypt/argon2 — never stored plain text.
-- Session cookies must be `httpOnly`, `secure`, `sameSite=lax` (or `strict`).
-- Rate-limit / lock out after repeated failed logins.
-- All matching-tool routes/pages must check session server-side (middleware or per-route guard) — do not rely on client-side redirects alone.
-- HTTPS only (Vercel gives this by default).
-- No self-service signup page — accounts created/managed by an admin only.
+- Never implement or store plaintext passwords; rely on the selected provider's supported authentication flow.
+- Protect every data read and write on the server and enforce least privilege at the database layer; client-side redirects are not authorization.
+- Use HTTPS and secure session handling supported by the provider.
+- Disable public self-service signup; accounts must be provisioned by an authorized admin.
 
 ## Open Questions for Client
-- 🔴 How many staff need accounts, and who administers adding/removing users?
-- 🔴 Any requirement for role differences (e.g. admin vs. regular staff), or is everyone the same access level?
-- 🔴 Any existing company SSO (Google Workspace, Microsoft 365) staff already use? If yes, "Sign in with Google/Microsoft" via NextAuth could replace password management entirely — often simpler and more secure than passwords.
+- ✅ Each staff member should have an individual account (no shared login).
+- 🔴 How many accounts are needed initially, and who administers adding/removing users?
+- ✅ Two role classes are needed: admin/manager and regular staff.
+- 🔴 Define permissions for each role (especially user management, status changes, assignments, exports, and access to records).
+- 🔴 Any existing company SSO (Google Workspace, Microsoft 365) staff already use? If so, confirm whether it should be the sign-in method.
+- 🔴 Who owns the Supabase project, billing, recovery, and administrator access? The client should own and control the production account.
 
 ## Suggested Next Steps
-1. Confirm with client whether they already use Google Workspace / Microsoft 365 — if so, prefer SSO over passwords (removes password-security burden entirely).
-2. If no SSO available, implement Option B with Auth.js Credentials provider.
-3. Wire auth into the same DB/hosting decision made in doc 1.
+1. Confirm SSO, initial user count, roles/permissions, and account administration with the client.
+2. Get approval for Supabase and client ownership of the production project.
+3. Implement Supabase Auth and server/database authorization together with the first protected data feature.

@@ -1,17 +1,17 @@
 # 5. Dashboard and Daily Tasks
 
-Status: 🔴 Requirements gathering (added 2026-10-05)
+Status: 🔴 Workflow and dashboard priorities need staff confirmation (updated 2026-10-19)
 
 Depends on: [01-caregiver-matching-system.md](01-caregiver-matching-system.md) (database, statuses, assignments).
 
 ## Context
 
-The client's Excel workbook has a dashboard tab showing only four counts: clients, pending/processing clients, total caregivers, pending/processing caregivers. It is mostly empty and unused. A separate tab holds daily tasks, reminders, and updates. Moving tasks into the app is the main reason staff would stop opening Excel, so this is a core adoption feature, not a nice-to-have.
+The received workbook contains a `DASHBOARD` with pipeline/readiness/follow-up counts, a `DAILY FOLLOW-UP` tab, and a `CLIENT PIPELINE` `Next Follow-Up` field. Staff clarified that each daily-follow-up row is a note/event and action/result notes accumulate in its row. Treat these primarily as activity history, not independent tasks; create a separate task only for a confirmed actionable follow-up. Two dashboard formulas have broken `#REF!` references.
 
 ## Proposed Dashboard
 
 - Pipeline counts by status; each count clicks through to the filtered list.
-- Today's and overdue tasks/reminders for the logged-in staff member.
+- Today's and overdue tasks assigned to the logged-in staff member (confirm whether everyone can see all tasks).
 - Unmatched clients, longest-waiting first.
 - New caregiver applicants awaiting review (fed by the caregiver form, doc 3).
 - Top suggested caregivers for each unmatched client (uses doc 1 matching).
@@ -20,11 +20,15 @@ The client's Excel workbook has a dashboard tab showing only four counts: client
 
 ## Proposed Tasks Model
 
-`tasks`: id, title, notes, due_date, assigned_to (staff user), related caregiver_id / client_id (optional), status (open/done), recurring rule (optional), created_by, created_at.
+Proposed `activity`: id, occurred_at, event type, content, actor/owner, optional related client/caregiver, source row. Preserve each source row and its accumulated notes; split old notes into multiple events only when dates and boundaries are unambiguous, otherwise retain the raw note for staff review.
+
+Proposed `tasks`: id, title, due_at, assigned_to, optional related client/caregiver, status, created_by, created_at, completed_at. Create a task only when a follow-up is explicitly actionable; do not treat every activity event as an open task. Add recurrence or notifications only if staff confirm the need.
 
 ## Open Questions
 
-- 🔴 How are the tasks/reminders tab used today: per staff member, shared, recurring, tied to a client or caregiver?
+- ✅ Each `DAILY FOLLOW-UP` row is a note/event; action/result notes accumulate in that row.
+- 🔴 Which due/status combinations represent a live actionable task, and should existing rows be split into events/tasks or retained as historical notes?
+- 🔴 Are events/tasks shared, individually owned, recurring, or tied to a person?
 - 🔴 Is there an "updates" log (notes on a client over time) that should become a per-record activity timeline?
 - 🔴 Do they want email reminders/notifications, or is in-app enough?
 - 🔴 Which of the dashboard ideas above matter most? What decisions do staff make each morning?
@@ -32,6 +36,7 @@ The client's Excel workbook has a dashboard tab showing only four counts: client
 
 ## Next Steps
 
-1. Get the tasks tab from the Excel workbook and review how it is used.
-2. Rank dashboard widgets with the client; build the top few first.
-3. Build after the schema and import in doc 1 are in place.
+1. Walk through the `DAILY FOLLOW-UP` columns and examples with staff; define task status, visibility, ownership, completion, and treatment of legacy notes.
+2. Confirm the dashboard counts, especially the two broken `#REF!` formulas, and rank widgets by decisions staff make daily.
+3. Map follow-ups to the task/activity model and migrate only values that staff confirm are actionable or meaningful history.
+4. Build tasks and agreed dashboard widgets after auth and the core client/caregiver schema are in place.
