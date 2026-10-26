@@ -1,6 +1,6 @@
 # 3. Caregiver Application Form Updates
 
-Status: 🟡 Workbook received; form platform and field decisions pending (updated 2026-10-19)
+Status: 🟡 WordPress-to-spreadsheet automation delegated; spreadsheet destination/sync details pending (updated 2026-10-26)
 
 ## Current State (from `template/oldForm/caregiverForm.txt`)
 
@@ -12,14 +12,14 @@ The received workbook's `HCA APPLICANTS` columns are name, phone, email, ZIP / A
 
 ## 2.1 — Automate Spreadsheet Intake
 
-Problem: the website currently emails each application and staff manually enter it in the spreadsheet. The client wants to keep the spreadsheet for now and automate this step. The exact spreadsheet platform and location (Google Sheets, Excel Online, or a local workbook) must be confirmed before choosing the integration.
+Problem: the WordPress website currently emails each application and staff manually enter it in the spreadsheet. The client wants to keep using the spreadsheet and automate this step. A copy is on Google Drive and copies also exist on computers/servers; the automatic upload/sync mechanism and authoritative editing copy are not yet understood.
 
 Proposed approaches (in order of preference):
 1. **Interim: automate website form → existing spreadsheet** — use the form host's supported integration or a secure server-side connector to validate submissions and add them to `HCA APPLICANTS`. Avoid email parsing if the form's submit action can be changed.
 2. **Fallback: email automation** — only if the form cannot be changed and the client approves it. Validate the email format and route parsing failures for manual review; do not silently create incomplete applicant records.
 3. **After app cutover: direct intake into the app** — optionally replace spreadsheet writes with a server-side endpoint that creates an applicant record in a review state, avoiding a second source of truth.
 
-The current form is hosted on WordPress. 🔴 Identify the form plugin and available submission hooks/integrations, and confirm the production form/submission route.
+The WordPress-to-spreadsheet automation has been assigned to another team. Integration-contract discussion is deferred. The team will need the form plugin and submission details; Rasuna still needs to identify which Google Drive/PC/server workbook is authoritative and how edits/uploads synchronize before a write target can be confirmed.
 
 ## 2.2 — Form Field Changes
 
@@ -49,8 +49,8 @@ Why this is better: precise zip + travel radius is exactly the input the matchin
 🔴 Open question: confirm which languages to offer and whether "other" should be supported. Languages are a matching preference in doc 1, not a hard requirement.
 
 ## Suggested Next Steps
-1. Compare the live WordPress form with the workbook's `HCA APPLICANTS` columns; identify the form plugin and current email submission route.
-2. Confirm the live spreadsheet platform and location (still unknown), then choose the WordPress-to-spreadsheet integration and automate writes into `HCA APPLICANTS`.
+1. **Delegated:** the external team identifies the WordPress form plugin and implements website submission automation.
+2. **Rasuna follow-up:** identify the authoritative spreadsheet and Drive/PC/server upload/sync workflow, then provide the chosen destination and `HCA APPLICANTS` field mapping to that team. Discuss the integration contract later as requested.
 3. Confirm who reviews new applicants.
 4. Approve required fields and validation rules, especially ZIP, travel range, language, and availability; decide whether drive/vehicle questions are needed.
-5. Implement the spreadsheet connector only after confirming its platform, access model, and test copy. Keep an explicit manual-review path for malformed submissions; revisit direct app intake after cutover.
+5. Review the delegated integration against the agreed spreadsheet destination and field mapping when the team is ready. Keep an explicit manual-review path for malformed submissions; revisit direct app intake after cutover.

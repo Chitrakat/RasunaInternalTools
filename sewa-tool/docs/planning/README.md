@@ -16,24 +16,25 @@ This folder tracks feature requests, open problems, and design decisions raised 
 - 🟢 In progress / partially built
 - ✅ Done
 
-## Current Snapshot (2026-10-19)
+## Current Snapshot (2026-10-26)
 
 | Item | Status |
 |---|---|
-| Caregiver matching search tool | 🟡 Direction decided (Supabase proposed); HCA lifecycle and CCU-waiting pipeline clarified; data/availability details pending |
+| Caregiver matching search tool | 🟡 Direction decided (Supabase proposed); lifecycle clarified; unique IDs and availability details pending |
 | Auth for matching app | 🟡 Individual accounts and admin/manager + regular-staff roles confirmed; permission details, SSO, and account administration pending |
 | Dashboard + daily tasks | 🟡 Daily-follow-up rows are event notes; task rules and dashboard priorities need confirmation |
-| Caregiver form intake and field changes | 🟡 WordPress form; keep spreadsheet as interim target; spreadsheet platform and WordPress plugin need discovery |
-| Spreadsheet-to-app migration | 🟡 Workbook mapped; assignment history must be created going forward; historical notes require review |
+| Caregiver form intake and field changes | 🟡 WordPress automation delegated; spreadsheet is interim target; Drive/PC/server sync path needs discovery |
+| Spreadsheet-to-app migration | 🟡 Workbook profiled; [fictional assignment/ID prototype](../../template/RASUNA%20Assignment%20History%20Prototype.xlsx) created; historical notes require review |
 
 ## Execution Order
 
-1. **Close implementation blockers** — identify the live spreadsheet platform and WordPress form plugin; confirm stable IDs, remaining status meanings, role permissions, and availability rules.
-2. **Automate the current intake workflow** — connect WordPress submissions to `HCA APPLICANTS` in a test destination, with validation and a manual-review fallback.
-3. **Specify and validate the import** — map all tabs, resolve identity/deduplication rules, produce a cleanup report, and build a safe repeatable import.
-4. **Build the protected operations core** — auth, client/caregiver records, status transitions, structured assignment history, and activity history.
-5. **Build follow-ups and the agreed dashboard.**
-6. **Build matching** — after availability, distance, language, and assignment rules are agreed and data is normalized.
-7. **Validate with staff and agree on cutover** — make the app authoritative only with client approval; retain tested Excel/CSV export.
+1. **Review the assignment/ID prototype** — agree the assignment fields and proposed client/HCA ID rules before adapting them to the shared workbook.
+2. **Stabilize spreadsheet identity/data** — identify the authoritative Google Drive/PC/server copy and sync mechanism; agree how client IDs, ready-stage Employee IDs, and active folder numbers are carried across tabs.
+3. **Complete the delegated intake automation** — the external team owns WordPress-to-spreadsheet implementation; discuss the field-mapping/integration contract later and verify it against the agreed spreadsheet target.
+4. **Specify and validate the import** — map all tabs, resolve identity/deduplication rules, produce a cleanup report, and build a safe repeatable import.
+5. **Build the protected operations core** — auth, client/caregiver records, status transitions, structured assignment history, and activity history.
+6. **Build follow-ups and the agreed dashboard.**
+7. **Build matching** — after availability, distance, language, and assignment rules are agreed and data is normalized.
+8. **Validate with staff and agree on cutover** — make the app authoritative only with client approval; retain tested Excel/CSV export.
 
-The first step is underway: the supplied workbook has been inspected and the planning docs are being aligned to its real tabs and known gaps. Implementation that would encode unresolved business rules remains gated on staff confirmation.
+The workbook snapshot has been inspected and staff have clarified key workflows. A fictional-data assignment/ID prototype is available for review. Do not change the shared spreadsheet until its authoritative copy and synchronization behavior are understood.

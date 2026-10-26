@@ -1,6 +1,6 @@
 # 4. Google Sheets / Excel Feedback (Upcoming Meeting)
 
-Status: 🟡 Workbook received and reviewed; workflow validation meeting still needed (updated 2026-10-19)
+Status: 🟡 Workbook reviewed; spreadsheet copies/sync and remaining workflows need confirmation (updated 2026-10-26)
 
 ## Context
 
@@ -24,9 +24,12 @@ The client-provided `template/RASUNA Master Operations.xlsx` is now available an
 - 🔴 What happens to clients after they leave the CCU-waiting stage, and what does moving a row to `Archive` mean?
 - 🔴 The `DASHBOARD` has two formulas containing `#REF!`. What are the intended approved/active client and missing-case-manager counts?
 - ✅ Keep using the spreadsheet for now; automate website applications into it as the interim workflow.
+- ✅ WordPress-to-spreadsheet automation is assigned to an external team; defer the integration-contract discussion until later.
 - 🔴 After the app is ready, will the client approve making it authoritative and archiving the workbook, or must the spreadsheet remain the source of truth?
 - ✅ The live form is hosted on WordPress. 🔴 Identify its form plugin and confirm the production form/submission route.
-- 🔴 The live spreadsheet platform/location is not yet known (Google Sheets, Excel Online, or a local workbook); the uploaded `.xlsx` alone does not establish the integration target.
+- ✅ A copy is on Google Drive and copies also exist on computers/servers. 🔴 The automatic upload/sync mechanism and authoritative editing copy are unknown; identify these before changing the shared spreadsheet or wiring automation.
+- 🔴 Client ID needs a unique stable value; determine how it will be generated and carried across client workflow/archive tabs. Preserve `SN` separately until staff confirm its meaning.
+- 🔴 HCA applicants do not need an Employee ID. Ready-to-work HCAs have one; active employees have an ID based on their document-folder number. Confirm whether these identifiers are the same and how to link applicants when promoted.
 
 ## Feedback to Prepare (general Sheets/Excel pain points to raise)
 - Spreadsheets don't scale well for search/filter across hundreds of rows — this is exactly why matching is slow today (doc 1).
@@ -41,7 +44,7 @@ The client-provided `template/RASUNA Master Operations.xlsx` is now available an
   - `CLIENT PIPELINE` currently tracks clients waiting for CCU.
   - `DAILY FOLLOW-UP` records events/notes, with actions and results accumulating in each row.
   - Start structured assignment history in the new tool; historical assignments are only in old working notes.
-  - Continue using the spreadsheet for now and automate website-form entry into it.
+  - Continue using the spreadsheet for now and automate WordPress form entry into it once the authoritative copy/sync path is known.
   - Staff need individual accounts, with admin/manager and regular-staff roles.
 - ✅ Workbook received at `template/RASUNA Master Operations.xlsx` (contains personal data; keep it local and do not attach it to tickets or commit it).
-- 🔴 Follow-ups: identify stable IDs and stage/status meanings from the data, later client stages/archive behavior, live spreadsheet platform, WordPress form plugin, and permissions within each role.
+- 🔴 Follow-ups: identify stable IDs and remaining stage/status meanings, later client stages/archive behavior, spreadsheet authority/sync, and permissions within each role. Later, discuss the integration contract with the external WordPress automation team.
