@@ -28,7 +28,7 @@ This folder tracks feature requests, open problems, and design decisions raised 
 
 ## Execution Order
 
-1. **Review the assignment/ID prototype** — agree the assignment fields and proposed client/HCA ID rules before adapting them to the shared workbook.
+1. **Review the assignment/ID prototype** — also viewable in the app at `/assignment-history` (sidebar: Operations → Assignment History (Prototype); in-memory demo data only) — agree the assignment fields and proposed client/HCA ID rules before adapting them to the shared workbook.
 2. **Stabilize spreadsheet identity/data** — identify the authoritative Google Drive/PC/server copy and sync mechanism; agree how client IDs, ready-stage Employee IDs, and active folder numbers are carried across tabs.
 3. **Complete the delegated intake automation** — the external team owns WordPress-to-spreadsheet implementation; discuss the field-mapping/integration contract later and verify it against the agreed spreadsheet target.
 4. **Specify and validate the import** — map all tabs, resolve identity/deduplication rules, produce a cleanup report, and build a safe repeatable import.

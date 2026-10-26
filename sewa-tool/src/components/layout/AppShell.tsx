@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link className={`nav-item ${pathname === "/" ? "active" : ""}`} href="/">Monthly Phone Monitoring</Link>
           <Link className={`nav-item ${pathname === "/quarterly-conference" ? "active" : ""}`} href="/quarterly-conference">Quarterly Conference</Link>
           <p className="nav-label muted">OPERATIONS</p>
-          <div className="nav-item disabled">Future tools</div>
+          <Link className={`nav-item ${pathname === "/assignment-history" ? "active" : ""}`} href="/assignment-history">Assignment History (Prototype)</Link>
         </aside>
 
         <main className="main-panel">{children}</main>
